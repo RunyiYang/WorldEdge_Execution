@@ -1,0 +1,264 @@
+# Proposed protocol. This file does not assert that any experiment has run.
+# Resolve and freeze manifests before test execution. Nulls are blocking fields.
+protocol:
+  id: worldedge_downstream_v1
+  project_context: WorldGrow
+  status: proposed
+  paper_table_labels:
+    policy: tab:worldedge_robot_policies
+    video: tab:worldedge_world_models
+  primary_claim: sustained_deployment_and_control_conditioned_prediction
+  test_driven_tuning: forbidden
+  output_root: runs/worldedge_downstream_v1
+
+provenance:
+  infinite_task_world_requested: https://github.com/Slian22/infinite-task-world
+  inspected_accessible_fork: https://github.com/RunyiYang/infinite-task-world
+  inspected_fork_commit: 4478db064767690ce4d6a6553a4fb1a4d588a3ca
+  roomgenbench_repo: https://github.com/WorldEdge-Lab/RoomGenBench
+  roomgenbench_inspected_commit: 30f2e059d046ccd4aa928d0109a09a52f11693b5
+  robodojo_inspected_commit: f57e1633ffed59761bc8e568cfe7530c4b33381c
+  evaluated_source_lock: null
+  note: Recheck actual installed sources; inspected commits are evidence, not a claim about latest upstream.
+
+splits:
+  grouping: source_world_and_all_derivatives
+  exact_generated_asset_instances_disjoint: true
+  policy_dev_worlds_per_setting: 8
+  policy_dev_smoke_worlds_per_setting: 2
+  policy_dev_pilot_worlds_per_setting: 6
+  policy_test_worlds_per_setting: 30
+  wm_train_worlds: 160
+  wm_dev_worlds: 20
+  wm_test_worlds: 30
+  wm_test_reuses_policy_manipulation_test_worlds: true
+  policy_manipulation_dev_is_subset_of_wm_dev: true
+  exact_asset_leakage_audit: required
+  split_manifest_sha256: null
+
+worlds:
+  policy_independent_admission: true
+  immutable_test_task_schedule: true
+  generation_max_attempts_per_bundle_slot: 5
+  failed_generation_attempts_retained: true
+  scene_compilation:
+    preserve_object_instance_ids: true
+    separate_visual_and_collision_geometry: true
+    recompute_inertia_after_scaling: true
+    movable_objects_are_dynamic_bodies: true
+    traversable_portals_have_no_closed_static_door_panel: true
+    existing_entities_unchanged_during_append: true
+    growth_runtime_mode_manifest: null
+  primary_tasks:
+    allowed: [rigid_pick_place, visible_containment, sorting, rearrangement, transport, delayed_reuse]
+    disabled_until_separate_protocol: [articulated_opening, pouring, deformables, precision_insertion]
+  physical_asset_bounds: null
+  admission_reference_controller_manifest: null
+  accepted_world_manifest_sha256: null
+
+policy:
+  training_on_worldedge: false
+  rounds_per_lifetime: 10
+  rollout_seeds: [0, 1]
+  task_families:
+    - {id: delivery_recollection, test_worlds: 10}
+    - {id: sorting_reorganization, test_worlds: 10}
+    - {id: multiobject_staging_cleanup, test_worlds: 10}
+  reuse_pairs: [[1, 4], [4, 7], [7, 10]]
+  chain_success_prefixes: [5, 10]
+  continue_after_task_failure: true
+  physical_reset_between_tasks: false
+  flush_old_instruction_action_queue: true
+  preserve_permitted_policy_memory: true
+  success_source: independent_simulator_state_and_trace
+  success_dwell_s: 2.0
+  thresholds_development_start:
+    support_contact_gap_m_max: 0.02
+    object_linear_speed_m_s_max: 0.05
+    object_angular_speed_rad_s_max: 0.2
+    target_footprint_margin_m: 0.01
+  thresholds_frozen_manifest: null
+  physics_paused_during_inference: true
+  inference_service_timeout_wall_s: 600
+  infrastructure_deterministic_retries: 1
+  unreached_tasks_score: 0
+  inaccessible_object_replacement: forbidden
+  adaptive_task_rewriting_during_test: forbidden
+  privileged_policy_observations: forbidden
+  checkpoint_manifest: null
+  settings:
+    manipulation:
+      embodiment_id: dual_arx_x5
+      test_worlds: 30
+      rooms_per_world: 1
+      deadline_per_task_sim_s: 120
+      provisional_physics_hz: 250
+      provisional_control_hz: 25
+      runtime_action_and_sensor_contract: null
+      model_ids: [pi05_robodojo, groot_n17_robodojo, internvla_a1_robodojo, openwam_alpha_robodojo, internw0_delta_robodojo]
+    mobile_manipulation:
+      embodiment_id: lift2_r5a
+      test_worlds: 30
+      rooms_per_world: 10
+      seed_room_is_round_one: true
+      append_one_room_before_rounds: [2, 3, 4, 5, 6, 7, 8, 9, 10]
+      each_round_uses_its_new_room: true
+      deadline_per_task_sim_s: 300
+      provisional_physics_hz: 30
+      provisional_control_hz: 30
+      runtime_action_and_sensor_contract: null
+      model_ids: [pi05_ebench, pi0_ebench, internvla_a1_ebench, openwam_alpha_ebench]
+
+video_world_models:
+  primary_setting: manipulation
+  embodiment_id: dual_arx_x5
+  mobile_extension_enabled: false
+  primary_models: [cosmos_predict25_2b_action_cond, dreamdojo_2b]
+  optional_models: [dreamdojo_14b]
+  optional_models_enabled: false
+  target_embodiment_posttraining_required: true
+  checkpoint_manifest: null
+  clip_duration_s: 30
+  video_fps: 10
+  frames_including_initial: 301
+  render_height: 480
+  render_width: 640
+  scored_frame_indices: [50, 300]
+  generation_seeds: [0, 1]
+  common_initial_input: [rgb_frame_0]
+  fixed_text_prompt: ""
+  native_caption_and_goal_text_conditioning: forbidden
+  future_input: issued_controls
+  future_realized_states_as_input: forbidden
+  future_video_latent_actions_as_input: forbidden
+  future_ground_truth_image_refresh: forbidden
+  room_insertion_inside_scored_clip: forbidden
+  camera:
+    type: fixed_native_overlook
+    calibrated_camera_manifest: null
+    same_camera_for_all_models: true
+  collector:
+    command_hz: 10
+    command_hold_s: 0.1
+    relative_increment_application: once_per_interval_then_hold_resolved_target
+    physics_hz: 250
+    physics_steps_per_command: 25
+    action_contract: null
+    action_dimension: null
+    command_values: verified_native_bimanual_targets_and_grippers
+    command_normalization_statistics_split: train_only
+    reexecute_modified_or_resampled_commands: true
+    reuse_policy_video_after_downsampling_controls: forbidden
+  dataset:
+    clips_per_world: 20
+    paired_branches_per_world: 10
+    stage_goal_initially_false: true
+    balanced_success_failure: true
+    pair_counts_per_world:
+      placement: 3
+      sorting: 2
+      multiobject_ordering: 2
+      delayed_revisit: 3
+    goal_dwell_at_endpoint_s: 0.5
+    immutable_pair_manifest_sha256: null
+    required_terminal_visual_observability: true
+  revisit:
+    identity_visible_initially: true
+    target_change_window_s: [2, 8]
+    both_branches_change_actual_target_state: true
+    min_occlusion_duration_s: 5
+    planned_occlusion_durations_s: [5, 10, 15]
+    reveal_window_s: [25, 30]
+    occluder: manipulable_rigid_screen
+    reveal_suffix_identical_across_pair: true
+    target_directed_reaches_in_reveal_suffix: forbidden
+    predicates: [target_identity, actual_location_or_containment, specified_visible_state]
+    denominator: all_scheduled_revisit_clips_and_seeds
+  training:
+    seed: 42
+    updates: 20000
+    effective_batch_size: 32
+    frames_per_sample: 13
+    future_frames_per_sample: 12
+    precision: bf16
+    optimizer: adamw
+    optimizer_betas: [0.9, 0.999]
+    optimizer_epsilon: 0.00000001
+    learning_rate: 0.00001
+    final_learning_rate: 0.000001
+    warmup_updates: 1000
+    lr_schedule: cosine
+    weight_decay: 0.01
+    gradient_clip_norm: 1.0
+    trainable: [video_transformer, action_conditioning]
+    frozen: [text_encoder, video_codec]
+    objective: each_model_native_objective_recorded_in_manifest
+    checkpoints_at_updates: [5000, 10000, 20000]
+    selection: minimum_mean_endpoint_lpips_30s_on_fixed_dev_subset
+    selection_dev_clips: 100
+    selection_generation_seed: 0
+    selection_subset_manifest_sha256: null
+    test_access_during_selection: forbidden
+    hardware_and_microbatch_manifest: null
+  inference:
+    frames_per_chunk: 13
+    new_frames_per_chunk: 12
+    chunks: 25
+    append_initial_frame_once: true
+    source_of_continuation: generated_frames_and_native_generated_memory
+    best_of_n_selection: forbidden
+    denoising_and_guidance_manifest: null
+    infrastructure_deterministic_retries: 1
+  scoring:
+    lpips_network: alex
+    lpips_version: "0.1"
+    lpips_height: 240
+    lpips_width: 320
+    lpips_rgb_range: [-1, 1]
+    lpips_resize: fixed_antialiased_bilinear
+    lpips_temporal_alignment: exact_timestamps_no_warp
+    lpips_missing_output_rule: whole_horizon_cell_not_reportable
+    outcome: balanced_accuracy
+    unknown_outcome: incorrect_for_both_classes
+    missing_or_unreadable_revisit: incorrect
+    seed_aggregation: average_within_clip
+    judge_manifest: null
+    judge_calibration_dev_clips: 200
+    judge_required_balanced_accuracy_percent: 95
+    judge_required_sensitivity_percent: 90
+    judge_required_specificity_percent: 90
+    generated_video_human_audit_fraction: 0.2
+    audit_all_unknown_outputs: true
+    disagreement_trigger_full_category_review_fraction: 0.1
+    required_controls: [reference_self_comparison, repeat_first_frame, loop_earlier_video, stale_state_replay, shuffled_actions, duplicated_target]
+
+statistics:
+  unit: independent_world_group
+  bootstrap_resamples: 10000
+  confidence_level: 0.95
+  paired_resampling_across_models: true
+  retain_all_seeds_pairs_and_tasks_within_world: true
+  policy_stratification: task_family
+  zero_event_results_require_counts_and_finite_sample_note: true
+  main_tables: point_estimates
+  supplement: [confidence_intervals, raw_counts, coverage, runtime, failure_breakdown]
+  derived_curves_without_new_rollouts:
+    policy_prefix_k: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    video_endpoint_seconds: [1, 5, 10, 20, 30]
+
+adaptive_demo:
+  enabled: false
+  purpose: optional_live_generation_feedback_showcase
+  setting: mobile_manipulation
+  preferred_policy: pi05_ebench
+  worlds: 3
+  max_rounds_per_world: 20
+  task_selection_depends_on_actual_terminal_state: true
+  compare_raw_success_rates_against_fixed_stream_table: false
+  policy_learning_claim_with_frozen_weights: forbidden
+
+gates:
+  required_before_large_runs: [source_audit, native_interface, physics_and_append, independent_evaluator, development_pilot, protocol_freeze]
+  final_completion_requires: [all_scheduled_runs_accounted, audit_complete, raw_artifacts, paired_aggregates, tables_from_results]
+  unresolved_fields_block_relevant_stage: true
+  do_not_replace_missing_data_with_results: true

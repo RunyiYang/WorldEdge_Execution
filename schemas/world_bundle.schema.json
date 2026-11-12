@@ -1,0 +1,694 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:worldedge:schema:world_bundle:1.0.0",
+  "title": "WorldEdge pinned world bundle",
+  "$comment": "This is a paired evaluation bundle, not an adaptive policy-dependent task list. Cross-file validation must verify unique IDs, no split leakage within source_group_id, asset existence, predicate IDs, earlier-round reuse dependencies, append timing, geometry/physics admission, and SHA-256 content matches. JSON Schema cannot verify those relations. Do not infer task success from the plan or room layout.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "world_bundle_id",
+    "source_group_id",
+    "split",
+    "pin_state",
+    "setting",
+    "embodiment_id",
+    "robot_asset_id",
+    "base_room",
+    "assets",
+    "ordered_tasks",
+    "append_room_manifest",
+    "admission"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "world_bundle_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_group_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "All variants derived from the same source/layout stay in one split and one uncertainty cluster."
+    },
+    "split": {
+      "enum": [
+        "train",
+        "dev",
+        "test"
+      ]
+    },
+    "pin_state": {
+      "enum": [
+        "draft",
+        "pinned"
+      ]
+    },
+    "setting": {
+      "enum": [
+        "manipulation",
+        "mobile_manipulation"
+      ]
+    },
+    "embodiment_id": {
+      "enum": [
+        "dual_arx_x5",
+        "lift2_r5a"
+      ]
+    },
+    "robot_asset_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Must resolve to an asset entry for the native checkpoint embodiment."
+    },
+    "base_room": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "room_id",
+        "manifest_ref"
+      ],
+      "properties": {
+        "room_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "manifest_ref": {
+          "$ref": "#/$defs/artifactRef"
+        }
+      }
+    },
+    "assets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "asset_id",
+          "role",
+          "ref"
+        ],
+        "properties": {
+          "asset_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "enum": [
+              "robot",
+              "visual_mesh",
+              "collision_mesh",
+              "physical_parameters",
+              "room_manifest",
+              "other"
+            ]
+          },
+          "ref": {
+            "$ref": "#/$defs/artifactRef"
+          }
+        }
+      }
+    },
+    "ordered_tasks": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "prefixItems": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/task"
+            },
+            {
+              "properties": {
+                "round_index": {
+                  "const": 1
+                },
+                "reuse_anchors": {
+                  "maxItems": 0
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/task"
+            },
+            {
+              "properties": {
+                "round_index": {
+                  "const": 2
+                },
+                "reuse_anchors": {
+                  "items": {
+                    "properties": {
+                      "source_round": {
+                        "maximum": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/task"
+            },
+            {
+              "properties": {
+                "round_index": {
+                  "const": 3
+                },
+                "reuse_anchors": {
+                  "items": {
+                    "properties": {
+                      "source_round": {
+                        "maximum": 2
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/task"
+            },
+            {
+              "properties": {
+                "round_index": {
+                  "const": 4
+                },
+                "reuse_anchors": {
+                  "items": {
+                    "properties": {
+                      "source_round": {
+                        "maximum": 3
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/task"
+            },
+            {
+              "properties": {
+                "round_index": {
+                  "const": 5
+                },
+                "reuse_anchors": {
+                  "items": {
+                    "properties": {
+                      "source_round": {
+                        "maximum": 4
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/task"
+            },
+            {
+              "properties": {
+                "round_index": {
+                  "const": 6
+                },
+                "reuse_anchors": {
+                  "items": {
+                    "properties": {
+                      "source_round": {
+                        "maximum": 5
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/task"
+            },
+            {
+              "properties": {
+                "round_index": {
+                  "const": 7
+                },
+                "reuse_anchors": {
+                  "items": {
+                    "properties": {
+                      "source_round": {
+                        "maximum": 6
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/task"
+            },
+            {
+              "properties": {
+                "round_index": {
+                  "const": 8
+                },
+                "reuse_anchors": {
+                  "items": {
+                    "properties": {
+                      "source_round": {
+                        "maximum": 7
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/task"
+            },
+            {
+              "properties": {
+                "round_index": {
+                  "const": 9
+                },
+                "reuse_anchors": {
+                  "items": {
+                    "properties": {
+                      "source_round": {
+                        "maximum": 8
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/task"
+            },
+            {
+              "properties": {
+                "round_index": {
+                  "const": 10
+                },
+                "reuse_anchors": {
+                  "items": {
+                    "properties": {
+                      "source_round": {
+                        "maximum": 9
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "items": false
+    },
+    "append_room_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "manifest_ref",
+        "events"
+      ],
+      "properties": {
+        "manifest_ref": {
+          "$ref": "#/$defs/artifactRef"
+        },
+        "events": {
+          "type": "array",
+          "maxItems": 9,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "event_id",
+              "before_round",
+              "room_id",
+              "room_manifest_ref",
+              "preserve_existing_state"
+            ],
+            "properties": {
+              "event_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "before_round": {
+                "type": "integer",
+                "minimum": 2,
+                "maximum": 10
+              },
+              "room_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "room_manifest_ref": {
+                "$ref": "#/$defs/artifactRef"
+              },
+              "preserve_existing_state": {
+                "const": true,
+                "description": "Appending a room must not reset old object/robot state or teleport objects into intended goal states."
+              }
+            }
+          }
+        }
+      }
+    },
+    "admission": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "report_ref"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "pending",
+            "accepted",
+            "rejected"
+          ]
+        },
+        "report_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/artifactRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "setting": {
+            "const": "manipulation"
+          }
+        },
+        "required": [
+          "setting"
+        ]
+      },
+      "then": {
+        "properties": {
+          "embodiment_id": {
+            "const": "dual_arx_x5"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "setting": {
+            "const": "mobile_manipulation"
+          }
+        },
+        "required": [
+          "setting"
+        ]
+      },
+      "then": {
+        "properties": {
+          "embodiment_id": {
+            "const": "lift2_r5a"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "pin_state": {
+            "const": "pinned"
+          }
+        },
+        "required": [
+          "pin_state"
+        ]
+      },
+      "then": {
+        "properties": {
+          "base_room": {
+            "properties": {
+              "manifest_ref": {
+                "$ref": "#/$defs/pinnedArtifactRef"
+              }
+            }
+          },
+          "assets": {
+            "items": {
+              "properties": {
+                "ref": {
+                  "$ref": "#/$defs/pinnedArtifactRef"
+                }
+              }
+            }
+          },
+          "ordered_tasks": {
+            "items": {
+              "properties": {
+                "formal_predicate_refs": {
+                  "properties": {
+                    "preconditions": {
+                      "$ref": "#/$defs/pinnedArtifactRef"
+                    },
+                    "goal": {
+                      "$ref": "#/$defs/pinnedArtifactRef"
+                    },
+                    "invariants": {
+                      "$ref": "#/$defs/pinnedArtifactRef"
+                    }
+                  }
+                },
+                "reuse_anchors": {
+                  "items": {
+                    "properties": {
+                      "predicate_ref": {
+                        "$ref": "#/$defs/pinnedArtifactRef"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "append_room_manifest": {
+            "properties": {
+              "manifest_ref": {
+                "$ref": "#/$defs/pinnedArtifactRef"
+              },
+              "events": {
+                "items": {
+                  "properties": {
+                    "room_manifest_ref": {
+                      "$ref": "#/$defs/pinnedArtifactRef"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "admission": {
+            "properties": {
+              "status": {
+                "const": "accepted"
+              },
+              "report_ref": {
+                "$ref": "#/$defs/pinnedArtifactRef"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "artifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Resolvable local or repository artifact path. Do not put secret-bearing URLs here."
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "pinnedArtifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Resolvable local or repository artifact path. Do not put secret-bearing URLs here."
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "round_index",
+        "task_id",
+        "room_id",
+        "instruction",
+        "formal_predicate_refs",
+        "deadline_s",
+        "deadline_clock",
+        "reuse_anchors"
+      ],
+      "properties": {
+        "round_index": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "task_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "room_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "instruction": {
+          "type": "string",
+          "minLength": 1
+        },
+        "formal_predicate_refs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "preconditions",
+            "goal",
+            "invariants"
+          ],
+          "properties": {
+            "preconditions": {
+              "$ref": "#/$defs/artifactRef"
+            },
+            "goal": {
+              "$ref": "#/$defs/artifactRef"
+            },
+            "invariants": {
+              "$ref": "#/$defs/artifactRef"
+            }
+          }
+        },
+        "deadline_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "deadline_clock": {
+          "enum": [
+            "simulation_seconds",
+            "wall_seconds"
+          ],
+          "description": "Must be frozen and identical across policy rows. Record inference latency separately."
+        },
+        "reuse_anchors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "anchor_id",
+              "object_id",
+              "source_round",
+              "predicate_ref"
+            ],
+            "properties": {
+              "anchor_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "object_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_round": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9
+              },
+              "predicate_ref": {
+                "$ref": "#/$defs/artifactRef"
+              }
+            }
+          },
+          "description": "Empty in round 1. Each source_round must precede this task. Object IDs must refer to persistent, physically executed states, not proposed updates."
+        }
+      }
+    }
+  }
+}

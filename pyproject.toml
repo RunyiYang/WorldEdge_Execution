@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "worldedge-execution"
+version = "0.1.0"
+description = "Reproducible WorldEdge robot-policy and video-world-model evaluation contracts"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "PyYAML==6.0.3",
+  "jsonschema==4.26.0",
+]
+
+[project.scripts]
+worldedge-eval = "worldedge_eval.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

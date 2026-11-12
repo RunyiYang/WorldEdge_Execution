@@ -1,0 +1,70 @@
+PRIMARY SOURCES AND INSPECTION SCOPE
+Protocol design date: 2026-11-12.
+All experiment counts, deadlines, split sizes and training budgets are proposed settings.
+
+Repository evidence
+1. Requested upstream:
+   https://github.com/Slian22/infinite-task-world
+   Returned 404 through the available GitHub connector during this review.
+   This does not establish whether the team's private/local upstream is available.
+2. Accessible inspected fork:
+   https://github.com/RunyiYang/infinite-task-world/tree/4478db064767690ce4d6a6553a4fb1a4d588a3ca
+   Session/reset and failed-state contract:
+   https://github.com/RunyiYang/infinite-task-world/blob/4478db064767690ce4d6a6553a4fb1a4d588a3ca/embodied_gen/world/pipeline/session.py
+   Oracle evaluation:
+   https://github.com/RunyiYang/infinite-task-world/blob/4478db064767690ce4d6a6553a4fb1a4d588a3ca/embodied_gen/world/robot_eval.py
+   Native executor:
+   https://github.com/RunyiYang/infinite-task-world/blob/4478db064767690ce4d6a6553a4fb1a4d588a3ca/worldedge/executor.py
+3. RoomGenBench:
+   https://github.com/WorldEdge-Lab/RoomGenBench/tree/30f2e059d046ccd4aa928d0109a09a52f11693b5
+   https://github.com/WorldEdge-Lab/RoomGenBench/blob/30f2e059d046ccd4aa928d0109a09a52f11693b5/bench/assemble.py
+   https://github.com/WorldEdge-Lab/RoomGenBench/blob/30f2e059d046ccd4aa928d0109a09a52f11693b5/bench/score_geom.py
+   Static geometry support is not dynamic manipulation verification.
+4. RoboDojo native timing:
+   https://github.com/RoboDojo-Benchmark/RoboDojo/blob/f57e1633ffed59761bc8e568cfe7530c4b33381c/env_cfg/sim/sim_config.yml
+   https://github.com/RoboDojo-Benchmark/RoboDojo/blob/f57e1633ffed59761bc8e568cfe7530c4b33381c/env_cfg/arx_x5.yml
+   https://github.com/RoboDojo-Benchmark/RoboDojo/blob/f57e1633ffed59761bc8e568cfe7530c4b33381c/env/observation_manager/obs_manager.py
+   https://github.com/RoboDojo-Benchmark/RoboDojo/blob/f57e1633ffed59761bc8e568cfe7530c4b33381c/src/eval_client/eval_env.py
+   Inspected defaults: physics dt 0.004 s; collection25 Hz; ten physics steps/action.
+5. EBench and OpenWAM deployment:
+   https://github.com/InternRobotics/EBench
+   https://github.com/OpenWAM-Official/OpenWAM/blob/main/benchmarks/ebench/README.md
+   https://github.com/OpenWAM-Official/OpenWAM/blob/main/benchmarks/robodojo/README.md
+   The EBench guide describes Lift2/R5a, native action semantics and simulator timing.
+   Pin actual installed commits and exact checkpoint hashes before running.
+6. InternW0-Delta release information:
+   https://github.com/InternRobotics/InternW0-Delta
+   Resolve exact released RoboDojo checkpoint from current official documentation.
+   No unverified mobile checkpoint is included in the default roster.
+
+Video world models
+7. Cosmos-Predict2.5:
+   https://github.com/nvidia-cosmos/cosmos-predict2.5
+   https://github.com/nvidia-cosmos/cosmos-predict2.5/blob/main/docs/inference_robot_action_cond.md
+   https://github.com/nvidia-cosmos/cosmos-predict2.5/blob/main/cosmos_predict2/action_conditioned.py
+   https://github.com/nvidia-cosmos/cosmos-predict2.5/blob/main/cosmos_predict2/_src/predict2/action/configs/action_conditioned/experiment/exp_2B_action_conditioned_rectify_flow.py
+   The inspected action-conditioned experiment uses Bridge's 7D interface.
+   A custom action loader does not itself train an ARX-compatible predictor.
+8. DreamDojo:
+   https://github.com/NVIDIA/DreamDojo
+   https://github.com/NVIDIA/DreamDojo/blob/main/docs/POSTTRAIN.md
+   https://github.com/NVIDIA/DreamDojo/blob/main/docs/DISTILL.md
+   https://arxiv.org/html/2602.06949v1
+   Post-training documentation lists target-robot action projections and native embodiments.
+9. Optional language/image-only baseline, excluded from matched numeric-control ranking:
+   https://github.com/Wan-Video/Wan2.2
+
+Metric
+10. Official LPIPS implementation:
+    https://github.com/richzhang/PerceptualSimilarity
+    https://arxiv.org/abs/1801.03924
+    Pin implementation revision/weights, AlexNet, LPIPS version0.1 and input preprocessing.
+
+Interpretation
+- Mutable main-branch links are source discovery references. The executed experiment must
+  replace them with an immutable source lock.
+- Candidate policy rows are a planned roster, not a claim of current WorldEdge integration.
+- RoomGenBench source supports the room/asset compilation audit; it supplies no robot/WM
+  results for this proposed experiment.
+- No cited source supplies the proposed WorldEdge scores or guarantees that the adaptation
+  budget is sufficient.

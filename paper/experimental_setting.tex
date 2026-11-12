@@ -1,0 +1,191 @@
+% Proposed experimental protocol, not a report of completed experiments.
+% Requires amsmath. Replace proposed defaults only after development validation.
+% Source links and all engineering details are in SOURCES.txt and AGENT_INSTRUCTIONS.txt.
+
+\subsection{Downstream Evaluation}
+\label{sec:downstream_setting}
+
+\paragraph{Scope.}
+We propose two complementary studies: sustained execution of frozen robot
+policies in generated environments, and control-conditioned video prediction
+with target-embodiment-adapted world models. The first study tests manipulation
+and mobile manipulation over persistent task streams. The second measures
+prediction quality, task-stage outcome accuracy, and persistence through
+occlusion. All settings below are preregistration defaults; the resulting
+scores must be computed from completed, audited runs.
+
+\paragraph{World construction and splits.}
+For each robot setting, we use 30 held-out world bundles and two rollout seeds
+per bundle. Each lifetime contains ten scheduled instructions. Manipulation
+uses a fixed-base dual-ARX-X5 workspace. Mobile manipulation uses a Lift2
+platform with R5a arms and a connected ten-room world: task one uses the seed
+room, and each subsequent task requires an appended room. The room sequence,
+object instances, task goals, and initial snapshots are shared across policies.
+The two seeds retain the same generated geometry.
+
+The worlds are stratified across delivery/recollection,
+sorting/reorganization, and multi-object staging/cleanup, with ten bundles
+per family. Eight separate development worlds per setting are reserved for
+interface verification and protocol calibration. World groups and exact
+generated asset instances are disjoint between training, development, and
+test; derived snapshots and action branches remain in their source group.
+This split is relative to the present study, without assuming knowledge of
+foundation-model pretraining corpora.
+
+Generated assets are compiled into the native simulators with persistent
+instance identities, validated collision geometry, and declared physical
+parameters. Admission verifies stable placement, robot clearance,
+reachability, traversable portals, executable goals, and a physically
+executed reference sequence. Admission does not depend on the tested
+policies. We report generation yield separately. Primary tasks use rigid
+objects and open receptacles; articulation and deformable interaction require
+separately validated extensions.
+
+\paragraph{Persistent robot deployment.}
+We evaluate the native compatible checkpoints of $\pi_{0.5}$, GR00T N1.7,
+InternVLA-A1, OpenWAM-$\alpha$, and InternW0-$\Delta$ for manipulation, and
+$\pi_{0.5}$, $\pi_0$, InternVLA-A1, and OpenWAM-$\alpha$ for mobile
+manipulation. Exact checkpoint, source, observation, action, and controller
+manifests are frozen before testing. No robot-policy training on WorldEdge
+is included. A row is reportable only after its actual interface is validated.
+
+A lifetime is reset only at its beginning. Between instructions, all actual
+robot and object states persist, including unsuccessful placements, contact
+states, and velocities. Room insertion preserves all existing entities.
+Queued actions for the old instruction are discarded, while permitted native
+policy memory is retained. Policies observe the current instruction and
+their declared native sensor inputs, without privileged scene state or
+future instructions. Task failure does not terminate an otherwise usable
+lifetime. Unreachable or unattempted goals remain in the scheduled
+denominator, and no object is respawned or replaced.
+
+We allocate 120 simulated seconds per manipulation task and 300 seconds per
+mobile task. These deadlines and physical predicate tolerances are calibrated
+only on development worlds. The offline capability test pauses physical time
+during model inference; inference latency and total wall time are reported
+separately. Native action timing is recorded per embodiment and is not
+conflated with action-chunk count. Success is computed independently from
+simulator state and event traces, requiring the specified final conjunction,
+temporal ordering, object release, and a two-second stable dwell.
+
+\paragraph{Robot metrics.}
+Let $y_{i,t}\in\{0,1\}$ denote success for task $t$ in lifetime $i$, with
+unreached tasks assigned zero. Strict chain success and completed tasks are
+\begin{align}
+\mathrm{SR@}K &=
+\frac{100}{N}\sum_{i=1}^{N}\prod_{t=1}^{K}y_{i,t},
+\qquad K\in\{5,10\},\\
+\mathrm{Tasks}/10 &=
+\frac{1}{N}\sum_{i=1}^{N}\sum_{t=1}^{10}y_{i,t}.
+\end{align}
+The second metric includes successful recovery after an earlier failure.
+For identity-specific anchor/reuse pairs
+$\mathcal{P}=\{(1,4),(4,7),(7,10)\}$, we report
+\begin{equation}
+\mathrm{Reuse}=
+\frac{100}{3N}\sum_{i=1}^{N}
+\sum_{(a,b)\in\mathcal{P}}y_{i,a}y_{i,b}.
+\end{equation}
+Anchor and reuse tasks require actual displacement and correct-instance
+placement. The denominator includes every scheduled pair. Stationary reuse
+measures sustained instance-specific interaction; mobile reuse additionally
+requires returning to or searching previously encountered spaces.
+
+\paragraph{Video world models and data.}
+The primary video comparison uses Cosmos-Predict2.5-2B with its
+robot/action-conditioned interface and DreamDojo-2B. DreamDojo-14B is an
+optional capacity extension. All primary methods are adapted to the same
+dual-ARX embodiment using the same training split, then frozen.
+Unrelated native robot checkpoints are not pooled into this comparison.
+Mobile video prediction requires a separate adaptation and reporting panel.
+
+We construct 3,200 training clips from 160 worlds, 400 development clips from
+20 worlds, and 600 test clips from the same 30 manipulation test worlds used
+for policy evaluation. Each world contributes ten matched success/failure
+pairs: three placement, two sorting, two multi-object ordering, and three
+revisit pairs. Paired branches share an initial snapshot, camera, stage goal,
+and physical parameters. Outcomes are established by actual simulator
+execution independently of the video models. The test set therefore contains
+300 positive and 300 negative stage outcomes and 180 revisit clips.
+
+Each clip lasts 30 seconds at 10 Hz. A dedicated collector executes
+piecewise-constant full bimanual commands for 100 ms each, using 25 physics
+substeps at 250 Hz. Any resampled policy controls are re-executed to generate
+their corresponding reference; old videos are not reused with modified
+actions. Model inputs are the initial RGB image and issued controls.
+Both predictors use the same fixed empty text prompt.
+Future measured robot poses, future object states, and latent actions
+extracted from reference video are excluded. No room is inserted during a
+scored clip.
+
+\paragraph{Adaptation and prediction.}
+We propose 20,000 target-adaptation updates per model, an effective batch of
+32, 13-frame samples, $480\times640$ images, BF16, and AdamW with initial
+learning rate $10^{-5}$, 1,000 warm-up updates, cosine decay to $10^{-6}$,
+weight decay 0.01, and gradient clipping at 1.0. Video-transformer and
+action-conditioning parameters are trained; the text encoder and video codec
+are frozen. Each method's native loss is recorded. The protocol matches data,
+updates, and optimizer schedule rather than computational cost or objective
+functions. Training uses seed 42; test uncertainty is conditional on the
+selected adapted checkpoint.
+
+Checkpoints at 5k, 10k, and 20k updates are selected by mean endpoint LPIPS
+at 30 seconds on a fixed 100-clip development subset. Test data do not enter
+training or checkpoint selection. Each test clip is predicted with seeds
+zero and one, without best-of-sample selection. A 13-frame recursive interface
+adds twelve new frames per chunk; 25 chunks produce 301 timestamped frames
+including the initial observation. Continuation uses generated context only,
+with no intermediate reference-image refresh.
+
+\paragraph{Video metrics.}
+LPIPS uses the fixed AlexNet implementation and version 0.1, with identical
+RGB normalization and resizing to $240\times320$. We compare frames at
+exactly 5 and 30 seconds, without temporal warping. These are endpoint
+distances. An independent blinded visual reader classifies the outcome of a
+predeclared 30-second stage goal. Success requires the terminal predicates
+during the last 0.5 seconds and any required event order; it is not the
+eventual outcome of an arbitrary longer parent task. Outcome is balanced
+accuracy:
+\begin{equation}
+\mathrm{Outcome}=
+50\left(
+\frac{\mathrm{TP}}{N_+}+
+\frac{\mathrm{TN}}{N_-}
+\right),
+\end{equation}
+where generation samples are averaged within each clip and unreadable
+predictions are incorrect for both classes.
+
+Revisit cases establish target identity, physically change its state during
+approximately 2--8 seconds, occlude it for at least five seconds, and reveal it
+during 25--30 seconds. Both branches change the actual target state.
+The three revisit pairs per world target 5, 10, and 15 seconds of occlusion.
+The reveal suffix is identical across paired branches and does not reach
+toward the hidden target. Revisit requires the correct identity and actual
+visible state at the endpoint, including the actual wrong placement in a
+failed task branch. Missing, duplicated, or unreadable targets are incorrect.
+
+The visual reader is calibrated on 200 balanced development clips against
+simulator labels, with human auditing. We require at least 95\% balanced
+accuracy and 90\% sensitivity/specificity before automatic test scoring.
+All unknown outputs and a stratified 20\% of generated videos are audited;
+categories with over 10\% disagreement receive complete adjudication.
+Static, looping, stale-state, and corrupted-action controls are reported in
+the supplement. Missing infrastructure outputs remain scheduled failures for
+semantic scores, and an incomplete LPIPS horizon is marked not reportable.
+
+\paragraph{Statistics and interpretation.}
+We bootstrap complete world groups 10,000 times, retaining all tasks,
+paired branches, and repeated seeds within each group. The same resamples
+are used for paired method comparisons; policy resampling is stratified by
+task family. Main tables show point estimates, while the supplement provides
+95\% intervals, event counts, coverage, runtime, and failure causes.
+The full nine-row policy schedule contains 540 lifetimes and at most 5,400
+task attempts. The two primary video models produce 2,400 test predictions.
+
+The policy table uses a frozen task/growth schedule for comparability.
+A separate optional demonstration may generate tasks adaptively from actual
+success/failure feedback. Its success rates are not mixed with the matched
+table. Control-conditioned video replay measures prediction of an issued
+trajectory; it does not by itself establish planning benefits or policy
+execution in an imagined environment.

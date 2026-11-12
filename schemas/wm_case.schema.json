@@ -1,0 +1,499 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:worldedge:schema:wm_case:1.0.0",
+  "title": "WorldEdge video world-model reference case",
+  "$comment": "Primary action-conditioned forecasting uses dual_arx_x5, I0 plus issued commands only, and no initial/future proprioception. The dedicated WM collector executes 10 Hz piecewise-constant commands with 0.1 s holds and 250 Hz physics (25 substeps per hold). Resampled Table 4 controls must be re-executed to derive the reference; old videos cannot be retained after action resampling. Separate issued model inputs from realized future simulator states/camera poses, which are evaluator-only. Reference forecasts contain 301 frames at t=0..30 s and 10 Hz, with frame zero as conditioning and 300 future targets. Cross-record checks verify snapshot/action branch, timestamps, pair/split grouping and hashes. Only delayed_revisit cases require revisit metadata: both paired branches actually change target state at 2\u20138 s, then include at least five continuous occluded seconds and the same fixed non-target-directed reveal suffix at 25\u201330 s. Do not invent physical effects from intentions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "case_id",
+    "world_bundle_id",
+    "split_group_id",
+    "pair_id",
+    "split",
+    "category",
+    "pool",
+    "embodiment_id",
+    "snapshot",
+    "action_contract",
+    "issued_commands_ref",
+    "reference_action_log_ref",
+    "raw_reference",
+    "camera",
+    "stage_goal_ref",
+    "reference_outcome",
+    "revisit",
+    "conditioning"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "world_bundle_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "split_group_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "All twenty clips, pair variants, seeds, source-room derivatives and any scene variants sharing this source remain in one split."
+    },
+    "pair_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Paired reference/counterfactual cases share initial conditions where specified. The runtime must verify pair semantics and keep the pair in one split."
+    },
+    "pair_variant": {
+      "type": "string"
+    },
+    "split": {
+      "enum": [
+        "train",
+        "dev",
+        "test"
+      ]
+    },
+    "pool": {
+      "enum": [
+        "primary",
+        "optional_mobile"
+      ]
+    },
+    "embodiment_id": {
+      "enum": [
+        "dual_arx_x5",
+        "lift2_r5a"
+      ]
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state_ref",
+        "scene_manifest_ref",
+        "simulator_build_ref"
+      ],
+      "properties": {
+        "state_ref": {
+          "$ref": "#/$defs/pinnedArtifactRef"
+        },
+        "scene_manifest_ref": {
+          "$ref": "#/$defs/pinnedArtifactRef"
+        },
+        "simulator_build_ref": {
+          "$ref": "#/$defs/pinnedArtifactRef"
+        }
+      }
+    },
+    "action_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_ref",
+        "representation",
+        "native_control_hz",
+        "physics_hz",
+        "rate_evidence_ref",
+        "wm_control_hz",
+        "hold_s"
+      ],
+      "properties": {
+        "contract_ref": {
+          "$ref": "#/$defs/pinnedArtifactRef"
+        },
+        "representation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "native_control_hz": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Native/source policy sampler rate for provenance. It is not the WM collector execution clock and is not assumed to be 25 Hz. Resolve from the installed source controller or sampler."
+        },
+        "physics_hz": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "The primary dual_arx_x5 WM collector runs at 250 Hz: 25 physics substeps per 100 ms command hold."
+        },
+        "rate_evidence_ref": {
+          "$ref": "#/$defs/pinnedArtifactRef"
+        },
+        "wm_control_hz": {
+          "const": 10,
+          "description": "Dedicated WM collector issues one native command every 100 ms."
+        },
+        "hold_s": {
+          "const": 0.1,
+          "description": "Each issued native command is held piecewise constant for 100 ms."
+        }
+      }
+    },
+    "issued_commands_ref": {
+      "$ref": "#/$defs/pinnedArtifactRef",
+      "description": "Commands issued in the dedicated 10 Hz WM collector, each held for 0.1 s. If sourced from Table 4 controls, resample and re-execute them in this collector to produce a new matched reference. Never downsample commands while retaining the old video."
+    },
+    "reference_action_log_ref": {
+      "$ref": "#/$defs/pinnedArtifactRef",
+      "description": "Executed actuator/control log for branch verification. Not interchangeable with the issued-command input."
+    },
+    "raw_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rgb_frames_ref",
+        "state_trace_ref",
+        "timestamps_ref",
+        "frame_count",
+        "duration_s"
+      ],
+      "properties": {
+        "rgb_frames_ref": {
+          "$ref": "#/$defs/pinnedArtifactRef"
+        },
+        "state_trace_ref": {
+          "$ref": "#/$defs/pinnedArtifactRef"
+        },
+        "timestamps_ref": {
+          "$ref": "#/$defs/pinnedArtifactRef"
+        },
+        "frame_count": {
+          "const": 301
+        },
+        "duration_s": {
+          "const": 30
+        }
+      }
+    },
+    "camera": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_ref",
+        "intrinsics_ref",
+        "frame_rate_hz",
+        "frame_count",
+        "issued_camera_commands_ref",
+        "realized_pose_trace_ref"
+      ],
+      "properties": {
+        "contract_ref": {
+          "$ref": "#/$defs/pinnedArtifactRef"
+        },
+        "intrinsics_ref": {
+          "$ref": "#/$defs/pinnedArtifactRef"
+        },
+        "frame_rate_hz": {
+          "const": 10
+        },
+        "frame_count": {
+          "const": 301
+        },
+        "issued_camera_commands_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/pinnedArtifactRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "realized_pose_trace_ref": {
+          "$ref": "#/$defs/pinnedArtifactRef",
+          "description": "Evaluator-only realized camera trace. Never feed future measured poses to the model as though they were issued commands."
+        }
+      }
+    },
+    "stage_goal_ref": {
+      "$ref": "#/$defs/pinnedArtifactRef",
+      "description": "Declared attempted interaction and intended predicates. The raw reference outcome takes precedence over the intended goal."
+    },
+    "reference_outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "goal_trace_ref",
+        "terminal_predicates_ref"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "success",
+            "failure",
+            "partial"
+          ]
+        },
+        "goal_trace_ref": {
+          "$ref": "#/$defs/pinnedArtifactRef"
+        },
+        "terminal_predicates_ref": {
+          "$ref": "#/$defs/pinnedArtifactRef"
+        }
+      }
+    },
+    "revisit": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/revisitProtocol"
+        }
+      ],
+      "description": "Null for placement, sorting and multiobject_ordering. A complete protocol object is required for delayed_revisit."
+    },
+    "conditioning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "initial_frame_index",
+        "future_target_frame_count",
+        "ground_truth_reseeding",
+        "future_realized_state_access",
+        "camera_mode"
+      ],
+      "properties": {
+        "initial_frame_index": {
+          "const": 0
+        },
+        "future_target_frame_count": {
+          "const": 300
+        },
+        "ground_truth_reseeding": {
+          "const": false
+        },
+        "future_realized_state_access": {
+          "const": false
+        },
+        "camera_mode": {
+          "enum": [
+            "initial_calibration_only",
+            "exogenous_issued_camera_commands"
+          ]
+        }
+      },
+      "description": "Primary model inputs are I0 and issued commands, with declared static calibration/exogenous camera commands only. No initial or future proprioception, future realized states or measured poses are provided."
+    },
+    "category": {
+      "enum": [
+        "placement",
+        "sorting",
+        "multiobject_ordering",
+        "delayed_revisit"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "pool": {
+            "const": "primary"
+          }
+        },
+        "required": [
+          "pool"
+        ]
+      },
+      "then": {
+        "properties": {
+          "embodiment_id": {
+            "const": "dual_arx_x5"
+          },
+          "action_contract": {
+            "properties": {
+              "physics_hz": {
+                "const": 250
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "pool": {
+            "const": "optional_mobile"
+          }
+        },
+        "required": [
+          "pool"
+        ]
+      },
+      "then": {
+        "properties": {
+          "embodiment_id": {
+            "const": "lift2_r5a"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "conditioning": {
+            "properties": {
+              "camera_mode": {
+                "const": "exogenous_issued_camera_commands"
+              }
+            },
+            "required": [
+              "camera_mode"
+            ]
+          }
+        },
+        "required": [
+          "conditioning"
+        ]
+      },
+      "then": {
+        "properties": {
+          "camera": {
+            "properties": {
+              "issued_camera_commands_ref": {
+                "$ref": "#/$defs/pinnedArtifactRef"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "category": {
+            "const": "delayed_revisit"
+          }
+        },
+        "required": [
+          "category"
+        ]
+      },
+      "then": {
+        "properties": {
+          "revisit": {
+            "$ref": "#/$defs/revisitProtocol"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "revisit": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "pinnedArtifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Resolvable local or repository artifact path. Do not put secret-bearing URLs here."
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "revisitProtocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_object_ids",
+        "known_state_at_s",
+        "state_change_window_s",
+        "occluded_interval_s",
+        "minimum_continuous_occlusion_s",
+        "return_window_s",
+        "visibility_trace_ref"
+      ],
+      "properties": {
+        "target_object_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "known_state_at_s": {
+          "const": 0
+        },
+        "state_change_window_s": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "const": 2
+            },
+            {
+              "const": 8
+            }
+          ],
+          "items": false,
+          "description": "Both paired branches must actually change target state in this window. Runtime validation must reject branches with only intended or symbolic changes; the actual simulator state determines eligibility."
+        },
+        "occluded_interval_s": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "type": "number",
+              "minimum": 8,
+              "maximum": 20
+            },
+            {
+              "type": "number",
+              "minimum": 13,
+              "maximum": 25
+            }
+          ],
+          "items": false,
+          "description": "Actual consecutive occlusion interval from the reference visibility trace. Runtime must check end - start >= 5 and no intervening target visibility."
+        },
+        "minimum_continuous_occlusion_s": {
+          "const": 5
+        },
+        "return_window_s": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "prefixItems": [
+            {
+              "const": 25
+            },
+            {
+              "const": 30
+            }
+          ],
+          "items": false,
+          "description": "Fixed, identical, non-target-directed reveal suffix across both paired branches. Verify control and camera-suffix identity at runtime."
+        },
+        "visibility_trace_ref": {
+          "$ref": "#/$defs/pinnedArtifactRef"
+        }
+      },
+      "description": "Only delayed_revisit cases use this metadata. In both paired branches, actual simulator target state must change during 2\u20138 s. Both branches use the same fixed, non-target-directed camera reveal suffix during 25\u201330 s. Verify these constraints from actual state/control/visibility traces, not intentions or model reports."
+    }
+  }
+}

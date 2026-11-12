@@ -1,0 +1,115 @@
+% WorldEdge: policy execution and video world-model prediction.
+% Requires booktabs. All numerical entries are unmeasured.
+% Table 4 includes both VLA and world action policies.
+% Table 5 is a proposed action-conditioned prediction study, not a claim that
+% the listed releases already support the same WorldEdge robot.
+%
+% POLICY PROTOCOL
+% Use matched admitted task chains and fixed checkpoints per embodiment.
+% Preserve actual physical state after failed attempts. Continue later requests
+% when the simulator remains usable. Impossible and unreached tasks score zero.
+% SR@K = 100/N * sum_i product_{j=1}^K s_ij.
+% Tasks /10 = 1/N * sum_i sum_{j=1}^{10} s_ij.
+% Reuse requires the designated earlier object change and later identity-correct
+% reuse, over all scheduled opportunities, including unreached opportunities.
+%
+% VIDEO PREDICTION PROTOCOL
+% Match initial observations, camera, timestamps and native control semantics.
+% Use a common compatible embodiment or documented target-robot adaptation on
+% the same training split. Freeze checkpoints before held-out prediction tests.
+% A tensor-format conversion alone does not establish embodiment compatibility.
+% Test actions must not be latent actions extracted from future reference video.
+% Distinguish issued robot commands from realized future proprioceptive traces.
+% The 5 s and 30 s horizons are proposed physical durations, not task counts.
+% Generate recursively without future GT image refresh within the scored window.
+% Compute LPIPS at matched horizons using fixed preprocessing and fixed sampling.
+% Primary WM setting: common dual-ARX manipulation, with target-robot adaptation.
+% Outcome is balanced accuracy of a predeclared 30 s STAGE goal against
+% the simulator, including paired successful and unsuccessful executions.
+% It is not the eventual success of a longer parent task.
+% All inference samples are averaged; unknown is incorrect for both classes.
+% Default: 30 test worlds, 20 clips/world, two generation seeds.
+% Primary models are the two 2B rows; DreamDojo-14B is an optional extension.
+% Dedicated 10 Hz commands must be physically replayed for the reference video.
+% LPIPS is endpoint AlexNet distance; incomplete coverage is NR, not omitted.
+% Use one independent audited video reader or blinded human annotation.
+% Unreadable predicted videos count as incorrect, not excluded samples.
+% Revisit uses a separate predefined reveal/return probe: the same object's
+% identity and latest state must be correct when it becomes visible again.
+% Missing or unreadable expected-visible objects fail the probe.
+% If causal current views are supplied when entering newly generated rooms,
+% describe the revisit probe as online state tracking, not uninterrupted rollout.
+% Never score arbitrary unobserved new-room geometry against a unique GT image.
+% Do not refresh the GT return view before evaluating the predicted return.
+% Wan2.2-I2V is a possible text/image-conditioned generation baseline, but has
+% no native numeric robot-action interface for this matched-action main table.
+% Candidate docs:
+% https://github.com/nvidia-cosmos/cosmos-predict2.5/blob/main/docs/inference_robot_action_cond.md
+% https://github.com/NVIDIA/DreamDojo/blob/main/docs/POSTTRAIN.md
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Robot policy evaluation.}
+We evaluate frozen vision-language-action and world action policies.
+Object states persist across tasks, with room expansion for mobile manipulation.
+SR@\(K\) measures completion of all first \(K\) tasks.
+Tasks is the mean number completed out of ten.
+Reuse measures delayed reuse of previously changed objects.
+Success rates are percentages. Checkpoint sources and embodiments are
+specified in the experimental setting.}
+\label{tab:worldedge_robot_policies}
+\begingroup
+\small
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrrr@{}}
+\toprule
+Policy & SR@5 $\uparrow$ & SR@10 $\uparrow$ & Tasks /10 $\uparrow$ & Reuse $\uparrow$ \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Manipulation}} \\
+$\pi_{0.5}$ & -- & -- & -- & -- \\
+GR00T N1.7 & -- & -- & -- & -- \\
+InternVLA-A1 & -- & -- & -- & -- \\
+OpenWAM-$\alpha$ & -- & -- & -- & -- \\
+InternW0-$\Delta$ & -- & -- & -- & -- \\
+\midrule
+\multicolumn{5}{@{}l}{\textit{Mobile Manipulation}} \\
+$\pi_{0.5}$ & -- & -- & -- & -- \\
+$\pi_{0}$ & -- & -- & -- & -- \\
+InternVLA-A1 & -- & -- & -- & -- \\
+OpenWAM-$\alpha$ & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular*}
+\endgroup
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Video world model evaluation.}
+Target-adapted models predict manipulation videos from matched observations
+and issued controls. Cosmos uses the 2B robot/action-conditioned variant.
+LPIPS is measured after 5 and 30 seconds without intermediate ground-truth
+image refresh. Outcome is balanced 30-second stage-outcome accuracy.
+Revisit measures identity and state accuracy when a previously changed object
+becomes visible again. Adaptation, coverage, and the revisit protocol are
+specified in the setting.}
+\label{tab:worldedge_world_models}
+\label{tab:worldedge_world_action_policies} % Alias for existing cross-references.
+\begingroup
+\small
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrrr@{}}
+\toprule
+& \multicolumn{2}{c}{LPIPS $\downarrow$}
+& \multicolumn{2}{c}{Accuracy (\%) $\uparrow$} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Model & 5 s & 30 s & Outcome & Revisit \\
+\midrule
+Cosmos-Predict2.5 & -- & -- & -- & -- \\
+DreamDojo-2B & -- & -- & -- & -- \\
+DreamDojo-14B & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular*}
+\endgroup
+\end{table}

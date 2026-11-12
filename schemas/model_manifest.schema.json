@@ -1,0 +1,597 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:worldedge:schema:model_manifest:1.0.0",
+  "title": "WorldEdge candidate-to-frozen model manifest",
+  "$comment": "Candidate manifests may contain null unresolved facts and must list them explicitly. Frozen manifests require real checkpoint hashes, pinned source commits, resolved interface contracts and no unresolved items. Do not fabricate checkpoint IDs, control rates, calibration, training, or gate results. Policy/WAM showcase checkpoints remain frozen; target adaptation, if used, is recorded only for video world models.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "model_id",
+    "display_name",
+    "family",
+    "stage",
+    "supported_embodiments",
+    "checkpoint",
+    "observation_contract",
+    "action_contract",
+    "source_commits",
+    "interface_gate",
+    "training",
+    "unresolved"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "model_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "family": {
+      "enum": [
+        "robot_policy",
+        "world_action_model",
+        "video_world_model"
+      ]
+    },
+    "stage": {
+      "enum": [
+        "candidate",
+        "interface_passed",
+        "frozen"
+      ]
+    },
+    "supported_embodiments": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "dual_arx_x5",
+          "lift2_r5a"
+        ]
+      }
+    },
+    "checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "revision",
+        "sha256",
+        "hash_scope"
+      ],
+      "properties": {
+        "source": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "hash_scope": {
+          "enum": [
+            "checkpoint_file",
+            "ordered_weights_manifest"
+          ],
+          "description": "Hash the actual weights or a canonical ordered manifest of weight file hashes, never the model name or URL string."
+        }
+      }
+    },
+    "observation_contract": {
+      "$ref": "#/$defs/contract"
+    },
+    "action_contract": {
+      "$ref": "#/$defs/contract"
+    },
+    "source_commits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "role",
+          "repository",
+          "commit"
+        ],
+        "properties": {
+          "role": {
+            "type": "string",
+            "minLength": 1
+          },
+          "repository": {
+            "type": "string",
+            "format": "uri"
+          },
+          "commit": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "interface_gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "report_ref"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "not_run",
+            "passed",
+            "failed"
+          ]
+        },
+        "report_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/artifactRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "training": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "status",
+        "config_ref",
+        "train_split_manifest_ref",
+        "dev_split_manifest_ref",
+        "adapted_components",
+        "test_data_used"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "none",
+            "wm_target_adaptation"
+          ]
+        },
+        "status": {
+          "enum": [
+            "not_applicable",
+            "planned",
+            "completed"
+          ]
+        },
+        "config_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/artifactRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "train_split_manifest_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/artifactRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "dev_split_manifest_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/artifactRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "adapted_components": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "test_data_used": {
+          "const": false
+        }
+      }
+    },
+    "unresolved": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "stage": {
+            "enum": [
+              "interface_passed",
+              "frozen"
+            ]
+          }
+        },
+        "required": [
+          "stage"
+        ]
+      },
+      "then": {
+        "properties": {
+          "supported_embodiments": {
+            "minItems": 1
+          },
+          "checkpoint": {
+            "properties": {
+              "source": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "observation_contract": {
+            "properties": {
+              "resolved": {
+                "const": true
+              },
+              "ref": {
+                "$ref": "#/$defs/artifactRef"
+              }
+            }
+          },
+          "action_contract": {
+            "properties": {
+              "resolved": {
+                "const": true
+              },
+              "ref": {
+                "$ref": "#/$defs/artifactRef"
+              }
+            }
+          },
+          "interface_gate": {
+            "properties": {
+              "status": {
+                "const": "passed"
+              },
+              "report_ref": {
+                "$ref": "#/$defs/artifactRef"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "stage": {
+            "const": "frozen"
+          }
+        },
+        "required": [
+          "stage"
+        ]
+      },
+      "then": {
+        "properties": {
+          "checkpoint": {
+            "properties": {
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "revision": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            }
+          },
+          "observation_contract": {
+            "properties": {
+              "ref": {
+                "$ref": "#/$defs/pinnedArtifactRef"
+              }
+            }
+          },
+          "action_contract": {
+            "properties": {
+              "ref": {
+                "$ref": "#/$defs/pinnedArtifactRef"
+              }
+            }
+          },
+          "source_commits": {
+            "minItems": 1,
+            "items": {
+              "properties": {
+                "commit": {
+                  "type": "string",
+                  "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"
+                }
+              }
+            }
+          },
+          "interface_gate": {
+            "properties": {
+              "report_ref": {
+                "$ref": "#/$defs/pinnedArtifactRef"
+              }
+            }
+          },
+          "unresolved": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "training": {
+            "properties": {
+              "mode": {
+                "const": "none"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          }
+        },
+        "required": [
+          "training"
+        ]
+      },
+      "then": {
+        "properties": {
+          "training": {
+            "properties": {
+              "status": {
+                "const": "not_applicable"
+              },
+              "config_ref": {
+                "type": "null"
+              },
+              "train_split_manifest_ref": {
+                "type": "null"
+              },
+              "dev_split_manifest_ref": {
+                "type": "null"
+              },
+              "adapted_components": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "training": {
+            "properties": {
+              "mode": {
+                "const": "wm_target_adaptation"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          }
+        },
+        "required": [
+          "training"
+        ]
+      },
+      "then": {
+        "properties": {
+          "family": {
+            "const": "video_world_model"
+          },
+          "training": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "planned",
+                  "completed"
+                ]
+              },
+              "adapted_components": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "stage": {
+            "const": "frozen"
+          },
+          "training": {
+            "properties": {
+              "mode": {
+                "const": "wm_target_adaptation"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          }
+        },
+        "required": [
+          "stage",
+          "training"
+        ]
+      },
+      "then": {
+        "properties": {
+          "training": {
+            "properties": {
+              "status": {
+                "const": "completed"
+              },
+              "config_ref": {
+                "$ref": "#/$defs/pinnedArtifactRef"
+              },
+              "train_split_manifest_ref": {
+                "$ref": "#/$defs/pinnedArtifactRef"
+              },
+              "dev_split_manifest_ref": {
+                "$ref": "#/$defs/pinnedArtifactRef"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "stage": {
+            "const": "candidate"
+          }
+        },
+        "required": [
+          "stage"
+        ]
+      },
+      "then": {
+        "properties": {
+          "unresolved": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "artifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Resolvable local or repository artifact path. Do not put secret-bearing URLs here."
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "pinnedArtifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Resolvable local or repository artifact path. Do not put secret-bearing URLs here."
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resolved",
+        "ref"
+      ],
+      "properties": {
+        "resolved": {
+          "type": "boolean"
+        },
+        "ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/artifactRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
